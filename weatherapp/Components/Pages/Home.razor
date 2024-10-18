@@ -1,0 +1,341 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.Web
+@using System.Net.Http.Json
+@rendermode InteractiveServer
+
+<PageTitle>Weather Report</PageTitle>
+
+<h1>Hello!</h1>
+
+<input type="number" @bind="numberOfCities" min="1" max="10" />
+<button @onclick="AdjustCityFields">Set Cities</button>
+
+@foreach (var city in cityNames)
+{
+    <input type="text" @bind="city.Name" placeholder="Enter a city" @onkeypress="HandleKeyPress" />
+    <button @onclick="() => RemoveCity(city)">-</button>
+}
+<button @onclick="AddCity">+</button>
+<button @onclick="FetchWeatherData">Search</button>
+
+@if (weatherDataList.Count >= 2 && cityNames.Count >= 2)
+{
+    var city1Data = weatherDataList.FirstOrDefault(w => w.name.Equals(cityNames[0].Name, StringComparison.OrdinalIgnoreCase));
+    var city2Data = weatherDataList.FirstOrDefault(w => w.name.Equals(cityNames[1].Name, StringComparison.OrdinalIgnoreCase));
+
+    if (city1Data != null && city2Data != null)
+    {
+        <h3>Comparison Between @city1Data.name and @city2Data.name</h3>
+        <p>
+            @if (city1Data.main.temp > city2Data.main.temp)
+            {
+                <text>@city1Data.name is warmer than @city2Data.name.</text>
+            }
+            else if (city1Data.main.temp < city2Data.main.temp)
+            {
+                <text>@city2Data.name is warmer than @city1Data.name.</text>
+            }
+            else
+            {
+                <text>@city1Data.name and @city2Data.name have the same temperature.</text>
+            }
+        </p>
+        <p>
+            @if (city1Data.wind.speed > city2Data.wind.speed)
+            {
+                <text>@city1Data.name has stronger wind than @city2Data.name.</text>
+            }
+            else if (city1Data.wind.speed < city2Data.wind.speed)
+            {
+                <text>@city2Data.name has stronger wind than @city1Data.name.</text>
+            }
+            else
+            {
+                <text>@city1Data.name and @city2Data.name have the same wind speed.</text>
+            }
+        </p>
+    }
+}
+
+<style>
+    body {
+        background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUBo805satSkmzMKRTU5tqaT-lJRerqXLtUA&usqp=CAU.jpg'); /* Replace with your image URL */
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+
+    .weather-container {
+        background-color: rgba(255, 255, 255, 0.8); /* Optional: Add a white background with opacity to make text readable */
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 1000px;
+        margin: 50px auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+
+    th {
+        background-color: peachpuff;
+    }
+</style>
+
+@if (weatherDataList.Count > 0)
+{
+    <div class="weather-container">
+        <h2>Weather Report for @string.Join(", ", weatherDataList.Select(w => w.name))</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Attribute</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <th>@weatherData.name</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>Country</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <td>@weatherData.sys.country</td>
+                    }
+                </tr>
+                <tr>
+                    <th>Temperature</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <td>@weatherData.main.temp &deg;C</td>
+                    }
+                </tr>
+                <tr>
+                    <th>Coordinates</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <td>[@weatherData.coord.lon, @weatherData.coord.lat]</td>
+                    }
+                </tr>
+                <tr>
+                    <th>Description</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <td>@weatherData.weather[0].description</td>
+                    }
+                </tr>
+                <tr>
+                    <th>Feels Like</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <td>@weatherData.main.feels_like &deg;C</td>
+                    }
+                </tr>
+                <tr>
+                    <th>Pressure</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <td>@weatherData.main.pressure hPa</td>
+                    }
+                </tr>
+                <tr>
+                    <th>Humidity</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <td>@weatherData.main.humidity %</td>
+                    }
+                </tr>
+                <tr>
+                    <th>Sea Level</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <td>@weatherData.main.sea_level hPa</td>
+                    }
+                </tr>
+                <tr>
+                    <th>Ground Level</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <td>@weatherData.main.grnd_level hPa</td>
+                    }
+                </tr>
+                <tr>
+                    <th>Wind Speed</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <td>@weatherData.wind.speed m/s</td>
+                    }
+                </tr>
+                <tr>
+                    <th>Wind Degree</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <td>@weatherData.wind.deg &deg;</td>
+                    }
+                </tr>
+                <tr>
+                    <th>Sunrise</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <td>@DateTimeOffset.FromUnixTimeSeconds(weatherData.sys.sunrise).ToLocalTime().TimeOfDay</td>
+                    }
+                </tr>
+                <tr>
+                    <th>Sunset</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <td>@DateTimeOffset.FromUnixTimeSeconds(weatherData.sys.sunset).ToLocalTime().TimeOfDay</td>
+                    }
+                </tr>
+                <tr>
+                    <th>Timezone</th>
+                    @foreach (var weatherData in weatherDataList)
+                    {
+                        <td>@weatherData.timezone</td>
+                    }
+                </tr>
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    public List<WeatherData> weatherDataList = new();
+    public List<City> cityNames = new List<City>();
+    private int numberOfCities = 1;
+    private string ApiKey = "4d7d0912d819bc8ea0e6661d1cc2b571";
+    public HttpClient httpClient = new HttpClient();
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await FetchWeatherData();
+        }
+    }
+
+    private void AdjustCityFields()
+    {
+        // Adjust cityNames list based on numberOfCities
+        while (cityNames.Count < numberOfCities)
+        {
+            cityNames.Add(new City());
+        }
+        while (cityNames.Count > numberOfCities)
+        {
+            cityNames.RemoveAt(cityNames.Count - 1);
+        }
+    }
+
+    public async Task FetchWeatherData()
+    {
+        weatherDataList.Clear();
+
+        foreach (var city in cityNames)
+        {
+            if (!string.IsNullOrWhiteSpace(city.Name))
+            {
+                try
+                {
+                    string apiUrl = $"http://api.openweathermap.org/data/2.5/weather?q={city.Name}&appid={ApiKey}&units=metric";
+                    var weatherData = await httpClient.GetFromJsonAsync<WeatherData>(apiUrl);
+
+                    if (weatherData != null)
+                    {
+                        weatherDataList.Add(weatherData);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error fetching data for {city.Name}: {ex.Message}");
+                }
+            }
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void AddCity()
+    {
+        cityNames.Add(new City());
+    }
+
+    public void RemoveCity(City city)
+    {
+        cityNames.Remove(city);
+    }
+
+    public class City
+    {
+        public string Name { get; set; }
+    }
+
+    public class Coord
+    {
+        public float lon { get; set; }
+        public float lat { get; set; }
+    }
+
+    public class Weather
+    {
+        public int id { get; set; }
+        public string main { get; set; }
+        public string description { get; set; }
+        public string icon { get; set; }
+    }
+
+    public class Main
+    {
+        public float temp { get; set; }
+        public float feels_like { get; set; }
+        public float temp_min { get; set; }
+        public float temp_max { get; set; }
+        public int pressure { get; set; }
+        public int humidity { get; set; }
+        public int sea_level { get; set; }
+        public int grnd_level { get; set; }
+    }
+    public class Wind
+    {
+        public float speed { get; set; }
+        public int deg { get; set; }
+        public float gust { get; set; }
+    }
+
+    public class Clouds
+    {
+        public int all { get; set; }
+    }
+
+    public class Sys
+    {
+        public string country { get; set; }
+        public long sunrise { get; set; }
+        public long sunset { get; set; }
+    }
+
+    public class WeatherData
+    {
+        public Coord coord { get; set; }
+        public List<Weather> weather { get; set; }
+        public string @base { get; set; }
+        public Main main { get; set; }
+        public int visibility { get; set; }
+        public Wind wind { get; set; }
+        public Clouds clouds { get; set; }
+        public long dt { get; set; }
+        public Sys sys { get; set; }
+        public int timezone { get; set; }
+        public int id { get; set; }
+        public string name { get; set; }
+        public int cod { get; set; }
+    }
+}
